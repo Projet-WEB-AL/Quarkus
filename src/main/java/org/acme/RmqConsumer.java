@@ -1,19 +1,30 @@
 package org.acme;
 
-import com.oracle.svm.core.annotate.Inject;
 import io.quarkus.logging.Log;
 import io.quarkus.mailer.Mail;
-import io.quarkus.mailer.Mailer;
+import io.quarkus.mailer.reactive.ReactiveMailer;
+import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
+
+import javax.inject.Inject;
+import java.util.Collections;
 
 public class RmqConsumer {
 
     @Inject
-    Mailer mailer;
+    ReactiveMailer reactiveMailer;
 
     @Incoming("msg")
-    public void consume(String data) {
-        Log.info("Received data: " + data);
-        mailer.send(Mail.withText("maildevt3", "A simple email from quarkus", data));
+    public Uni<Void> consume(byte[] data) {
+        String msg = new String(data);
+        Log.info("Received data: " + msg);
+        Mail mail = new Mail();
+        mail.setFrom("test@gmail.com");
+        mail.setSubject("Test");
+        mail.setTo(Collections.singletonList("test@gmail.com"));
+        mail.setText("je suis un test");
+        return reactiveMailer.send(mail);
     }
+
+
 }
